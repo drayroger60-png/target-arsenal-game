@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ninja Arsenal</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #0B0C10;
+            overflow: hidden;
+            touch-action: none;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #stopBtn {
+            display: none;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 12px 26px;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #FF3344, #B3001B);
+            color: #FFFFFF;
+            border: 2px solid #FF6B7A;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(255, 51, 68, 0.4);
+            text-transform: uppercase;
+        }
+
+        #stopBtn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(255, 51, 68, 0.4);
+        }
+
+        .modal-overlay {
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(8, 9, 14, 0.88);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #FFF;
+        }
+
+        .menu-card {
+            background: linear-gradient(180deg, #1A1C29 0%, #0E1017 100%);
+            border: 2px solid #FFD700;
+            border-radius: 16px;
+            width: 92%;
+            max-width: 440px;
+            height: 85vh;
+            max-height: 640px;
+            padding: 16px 12px;
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.25), inset 0 0 15px rgba(255, 215, 0, 0.05);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-title {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 15px;
+            background: linear-gradient(180deg, #FFF 20%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .menu-btn {
+            width: 100%;
+            padding: 15px 0;
+            margin: 9px 0;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.15s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.35);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .weapon-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 10px 0;
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 4px;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .weapon-card {
+            background: #141622;
+            border: 2px solid #2A2E45;
+            border-radius: 10px;
+            padding: 8px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .weapon-card.equipped {
+            border-color: #FFD700;
+            background: linear-gradient(180deg, #252210 0%, #141622 100%);
+        }
+
+        .weapon-name {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 2px;
+            color: #E2E8F0;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .weapon-price {
+            font-size: 10px;
+            font-weight: 800;
+            color: #FFD700;
+            margin-bottom: 6px;
+        }
+
+        .weapon-price.purchased {
+            color: #10B981;
+            letter-spacing: 1px;
+        }
+
+        .equip-btn {
+            width: 100%;
+            padding: 6px 0;
+            border: none;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 10px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            background: #FFD700;
+            color: #000;
+            text-transform: uppercase;
+        }
+
+        .equip-btn:disabled {
+            background: #2A2E45;
+            color: #64748B;
+            cursor: not-allowed;
+        }
+
+        .close-btn {
+            background: linear-gradient(135deg, #FF3344, #B3001B);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 5px;
+            text-transform: uppercase;
+            width: 100%;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="stopBtn">STOP</button>
+
+    <!-- Main Menu -->
+    <div id="homeModal" class="modal-overlay">
+        <div class="menu-card">
+            <div class="game-title">TARGET ARSENAL</div>
+            <button class="menu-btn btn-primary" id="playBtn">START GAME</button>
+            <button class="menu-btn btn-secondary" id="homeShopBtn">WEAPON SHOP</button>
+        </div>
+    </div>
+
+    <!-- Shop Interface -->
+    <div id="shopModal" class="modal-overlay" style="display: none;">
+        <div class="menu-card">
+            <div style="font-size: 14px; font-weight: 800; color: #FFD700; margin-bottom: 4px; flex-shrink: 0;" id="shopPointsDisplay">POINTS: 0</div>
+            <div class="game-title" style="font-size: 22px; margin-bottom: 6px; flex-shrink: 0;">WEAPONS</div>
+            <div class="weapon-grid" id="weaponGrid"></div>
+            <button class="close-btn" id="closeShopBtn">RETURN TO MENU</button>
+        </div>
+    </div>
+
+    <canvas id="screen"></canvas>
+
+    <script>
+        const canvas = document.getElementById('screen');
+        const ctx = canvas.getContext('2d');
+
+        let gameState = 'menu';
+
+        let rest = { x: 0, y: 0 };
+        let pos = { x: 0, y: 0 };
+        let dragPos = { x: 0, y: 0 };
+        let vel = { x: 0, y: 0 };
+        let rotation = 0;
+        let state = 'idle';
+        let particles = [];
+        let crate = null;
+        let boundaryY = 0;
+
+        let dragStartTime = 0;
+        let shakeOffset = { x: 0, y: 0 };
+
+        // --- AUDIO ENGINE ---
+        let audioCtx = null;
+        let bgmTimer = null;
+
+        const bgmNotes = [
+            220.00, 261.63, 293.66, 329.63, 392.00, 440.00, 
+            523.25, 587.33, 659.25, 783.99, 880.00, 1046.50
+        ];
+
+        const bgmMelody = [
+            2, -1, 5, 4,  3, -1, 2, -1,  5, 7, 8, 7,  5, 4, 3, -1,
+            2, -1, 5, 6,  7, 9, 8, 7,   10, -1, 8, 7,  5, 4, 2, -1,
+            7, 8, 10, -1, 8, 7, 5, -1,  4, 5, 7, 8,  7, 5, 3, 2,
+            2, 4, 5, 7,   8, 10, 11, 10, 8, 7, 5, 4, 3, 2, 2, -1
+        ];
+
+        const bassNotes = [0, -1, 1, -1, 0, -1, 1, -1, 0, -1, 1, -1, 0, -1, 1, -1];
+        let noteStep = 0;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playNote(freq, type, volume, duration) {
+            if (!audioCtx || gameState !== 'playing') return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+            gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function startBGM() {
+            initAudio();
+            if (bgmTimer) return;
+
+            bgmTimer = setInterval(() => {
+                if (!audioCtx || gameState !== 'playing') return;
+
+                const currentStep = noteStep % bgmMelody.length;
+                const noteIdx = bgmMelody[currentStep];
+
+                if (noteIdx !== -1) {
+                    const freq = bgmNotes[noteIdx];
+                    const waveType = noteIdx > 6 ? 'sawtooth' : 'triangle';
+                    playNote(freq, waveType, 0.22, 0.35);
+                }
+
+                if (currentStep % 4 === 0) {
+                    const bassIdx = bassNotes[(currentStep / 4) % bassNotes.length];
+                    if (bassIdx !== -1) {
+                        playNote(bgmNotes[bassIdx], 'square', 0.15, 0.5);
+                    }
+                }
+
+                noteStep++;
+            }, 190);
+        }
+
+        function stopBGM() {
+            if (bgmTimer) {
+                clearInterval(bgmTimer);
+                bgmTimer = null;
+            }
+            noteStep = 0;
+        }
+
+        // --- WEAPONS ARSENAL WITH PRICES ---
+        const WEAPONS = {
+            shuriken: { id: 'shuriken', name: '4-Point Shuriken', price: 0 },
+            kunai: { id: 'kunai', name: 'Tactical Kunai', price: 10 },
+            axe: { id: 'axe', name: 'Throwing Hatchet', price: 15 },
+            fuma: { id: 'fuma', name: 'Fuma Windmill', price: 30 },
+            sai: { id: 'sai', name: 'Throwing Sai', price: 50 },
+            chakram: { id: 'chakram', name: 'Bladed Chakram', price: 100 },
+            boshuriken: { id: 'boshuriken', name: 'Bo-Shuriken Spike', price: 125 },
+            shoko: { id: 'shoko', name: '3-Point Claw Star', price: 150 },
+            kyoketsu: { id: 'kyoketsu', name: 'Kyoketsu-Shoge Blade', price: 175 },
+            cards: { id: 'cards', name: 'Steel Card', price: 1000 }
+        };
+
+        let points = parseInt(localStorage.getItem('ninja_points')) || 0;
+        let equippedWeapon = localStorage.getItem('ninja_equipped') || 'shuriken';
+        
+        // Use v2 storage key to ensure a clean default state where only 'shuriken' is unlocked initially
+        let unlockedWeapons = JSON.parse(localStorage.getItem('ninja_unlocked_v2')) || ['shuriken'];
+
+        function saveData() {
+            localStorage.setItem('ninja_points', points);
+            localStorage.setItem('ninja_equipped', equippedWeapon);
+            localStorage.setItem('ninja_unlocked_v2', JSON.stringify(unlockedWeapons));
+        }
+
+        // --- UI LOGIC ---
+        const homeModal = document.getElementById('homeModal');
+        const shopModal = document.getElementById('shopModal');
+        const playBtn = document.getElementById('playBtn');
+        const homeShopBtn = document.getElementById('homeShopBtn');
+        const closeShopBtn = document.getElementById('closeShopBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const weaponGrid = document.getElementById('weaponGrid');
+        const shopPointsDisplay = document.getElementById('shopPointsDisplay');
+
+        playBtn.addEventListener('click', () => {
+            gameState = 'playing';
+            homeModal.style.display = 'none';
+            stopBtn.style.display = 'block';
+            state = 'idle';
+            pos = { ...rest };
+            startBGM();
+        });
+
+        homeShopBtn.addEventListener('click', () => {
+            homeModal.style.display = 'none';
+            renderShop();
+            shopModal.style.display = 'flex';
+        });
+
+        closeShopBtn.addEventListener('click', () => {
+            shopModal.style.display = 'none';
+            homeModal.style.display = 'flex';
+        });
+
+        stopBtn.addEventListener('click', () => {
+            gameState = 'menu';
+            stopBtn.style.display = 'none';
+            homeModal.style.display = 'flex';
+            state = 'idle';
+            pos = { ...rest };
+            stopBGM();
+        });
+
+        function renderShop() {
+            weaponGrid.innerHTML = '';
+            shopPointsDisplay.innerText = `POINTS: ${points}`;
+
+            Object.keys(WEAPONS).forEach(key => {
+                const w = WEAPONS[key];
+                const isUnlocked = unlockedWeapons.includes(w.id);
+                const isEquipped = equippedWeapon === w.id;
+
+                const card = document.createElement('div');
+                card.className = `weapon-card ${isEquipped ? 'equipped' : ''}`;
+
+                let priceText = '';
+                let btnText = 'EQUIP';
+                let isDisabled = false;
+
+                if (isEquipped) {
+                    priceText = 'PURCHASED';
+                    btnText = 'EQUIPPED';
+                    isDisabled = true;
+                } else if (isUnlocked) {
+                    priceText = 'PURCHASED';
+                    btnText = 'EQUIP';
+                    isDisabled = false;
+                } else {
+                    priceText = w.price === 0 ? 'FREE' : w.price + ' pts';
+                    btnText = `BUY (${w.price})`;
+                    if (points < w.price) {
+                        isDisabled = true;
+                    }
+                }
+
+                card.innerHTML = `
+                    <div class="weapon-name">${w.name}</div>
+                    <div class="weapon-price ${isUnlocked ? 'purchased' : ''}">${priceText}</div>
+                    <button class="equip-btn" ${isDisabled ? 'disabled' : ''}>${btnText}</button>
+                `;
+
+                const btn = card.querySelector('.equip-btn');
+                btn.addEventListener('click', () => {
+                    if (!isUnlocked) {
+                        if (points >= w.price) {
+                            points -= w.price;
+                            unlockedWeapons.push(w.id);
+                            equippedWeapon = w.id;
+                            saveData();
+                            renderShop();
+                        }
+                    } else {
+                        equippedWeapon = w.id;
+                        saveData();
+                        renderShop();
+                    }
+                });
+
+                weaponGrid.appendChild(card);
+            });
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            boundaryY = canvas.height - 180;
+            rest = { x: canvas.width / 2, y: canvas.height - 90 };
+            if (state === 'idle') pos = { ...rest };
+            
+            if (!crate) spawnCrate();
+        }
+
+        function spawnCrate() {
+            const size = Math.random() * 25 + 50;
+            const playZoneHeight = boundaryY - size - 40;
+            const entrySide = Math.floor(Math.random() * 3);
+            let startX, startY, targetX, targetY;
+
+            if (entrySide === 0) {
+                startX = -size - 20;
+                startY = Math.random() * playZoneHeight + 30;
+                targetX = canvas.width + size + 20;
+                targetY = Math.random() * playZoneHeight + 30;
+            } 
+            else if (entrySide === 1) {
+                startX = canvas.width + size + 20;
+                startY = Math.random() * playZoneHeight + 30;
+                targetX = -size - 20;
+                targetY = Math.random() * playZoneHeight + 30;
+            } 
+            else {
+                startX = Math.random() * (canvas.width - 100) + 50;
+                startY = -size - 20;
+                targetX = (Math.random() < 0.5) ? -size - 20 : canvas.width + size + 20;
+                targetY = Math.random() * playZoneHeight + 30;
+            }
+
+            const baseAngle = Math.atan2(targetY - startY, targetX - startX);
+            const speed = Math.random() * 3 + 3.5;
+
+            crate = {
+                startX, startY,
+                x: startX,
+                y: startY,
+                w: size,
+                h: size,
+                vx: Math.cos(baseAngle) * speed,
+                vy: Math.sin(baseAngle) * speed,
+                angle: 0,
+                vRot: (Math.random() - 0.5) * 0.08,
+                time: 0,
+                waveAmp: Math.random() * 60 + 20,
+                waveFreq: Math.random() * 0.04 + 0.02
+            };
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function getPointerPos(e) {
+            if (e.touches && e.touches.length > 0) {
+                return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+            return { x: e.clientX, y: e.clientY };
+        }
+
+        function onStart(e) {
+            if (gameState !== 'playing') return;
+            const p = getPointerPos(e);
+            if (state === 'idle') {
+                const dist = Math.hypot(p.x - pos.x, p.y - pos.y);
+                if (dist < 60) {
+                    state = 'dragging';
+                    dragPos = { ...p };
+                    dragStartTime = Date.now();
+                    shakeOffset = { x: 0, y: 0 };
+                }
+            }
+        }
+
+        function onMove(e) {
+            if (gameState !== 'playing') return;
+            if (state === 'dragging') {
+                const p = getPointerPos(e);
+                dragPos = { ...p };
+
+                const dx = dragPos.x - rest.x;
+                const dy = dragPos.y - rest.y;
+                const dist = Math.hypot(dx, dy);
+                const maxDist = 130;
+
+                if (dist > maxDist) {
+                    const angle = Math.atan2(dy, dx);
+                    dragPos.x = rest.x + Math.cos(angle) * maxDist;
+                    dragPos.y = rest.y + Math.sin(angle) * maxDist;
+                }
+            }
+        }
+
+        function releaseShuriken(isMisfire = false) {
+            const dx = rest.x - (dragPos.x + shakeOffset.x);
+            const dy = rest.y - (dragPos.y + shakeOffset.y);
+            let power = 0.22;
+
+            vel = { x: dx * power, y: dy * power };
+
+            if (isMisfire) {
+                vel.x += (Math.random() - 0.5) * 15;
+                vel.y += (Math.random() - 0.5) * 15;
+            }
+
+            if (Math.hypot(vel.x, vel.y) > 2) {
+                state = 'flying';
+            } else {
+                state = 'idle';
+                pos = { ...rest };
+            }
+        }
+
+        function onEnd() {
+            if (gameState !== 'playing') return;
+            if (state === 'dragging') {
+                releaseShuriken(false);
+            }
+        }
+
+        canvas.addEventListener('mousedown', onStart);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
+
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onStart(e); }, { passive: false });
+        window.addEventListener('touchmove', (e) => { e.preventDefault(); onMove(e); }, { passive: false });
+        window.addEventListener('touchend', onEnd);
+
+        function updateCrate() {
+            if (!crate) return;
+
+            crate.time += 1;
+            crate.x += crate.vx;
+            crate.y += crate.vy;
+
+            const perpX = -crate.vy;
+            const perpY = crate.vx;
+            const len = Math.hypot(perpX, perpY) || 1;
+            
+            const waveOffset = Math.sin(crate.time * crate.waveFreq) * crate.waveAmp;
+            const currentX = crate.x + (perpX / len) * waveOffset;
+            const currentY = crate.y + (perpY / len) * waveOffset;
+
+            crate.angle += crate.vRot;
+
+            if (currentY + crate.h >= boundaryY) {
+                spawnCrate();
+                return;
+            }
+
+            const margin = 120;
+            if (currentX < -margin || currentX > canvas.width + margin || currentY < -margin) {
+                spawnCrate();
+            }
+        }
+
+        function getCratePos(c) {
+            const perpX = -c.vy;
+            const perpY = c.vx;
+            const len = Math.hypot(perpX, perpY) || 1;
+            const waveOffset = Math.sin(c.time * c.waveFreq) * c.waveAmp;
+            return {
+                x: c.x + (perpX / len) * waveOffset,
+                y: c.y + (perpY / len) * waveOffset
+            };
+        }
+
+        function drawAtmosphericBackground() {
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, boundaryY);
+            skyGrad.addColorStop(0, '#0B0D19');
+            skyGrad.addColorStop(0.6, '#15192B');
+            skyGrad.addColorStop(1, '#231B36');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, boundaryY);
+
+            ctx.save();
+            const moonX = canvas.width * 0.8;
+            const moonY = 110;
+            const moonGlow = ctx.createRadialGradient(moonX, moonY, 20, moonX, moonY, 120);
+            moonGlow.addColorStop(0, 'rgba(255, 245, 215, 0.9)');
+            moonGlow.addColorStop(0.4, 'rgba(255, 215, 120, 0.25)');
+            moonGlow.addColorStop(1, 'rgba(255, 215, 120, 0)');
+            ctx.fillStyle = moonGlow;
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, 120, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#FFF9E6';
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, 42, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            const floorGrad = ctx.createLinearGradient(0, boundaryY, 0, canvas.height);
+            floorGrad.addColorStop(0, '#2D1B13');
+            floorGrad.addColorStop(0.2, '#1F120C');
+            floorGrad.addColorStop(1, '#0C0604');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, boundaryY, canvas.width, canvas.height - boundaryY);
+
+            ctx.strokeStyle = '#150A06';
+            ctx.lineWidth = 3;
+            const plankHeight = 35;
+            for (let y = boundaryY; y < canvas.height; y += plankHeight) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            ctx.save();
+            ctx.strokeStyle = '#FF3344';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = '#FF3344';
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.moveTo(0, boundaryY);
+            ctx.lineTo(canvas.width, boundaryY);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawCrate(c) {
+            if (!c) return;
+            ctx.save();
+            
+            const renderPos = getCratePos(c);
+            ctx.translate(renderPos.x + c.w / 2, renderPos.y + c.h / 2);
+            ctx.rotate(c.angle);
+
+            const halfW = c.w / 2;
+            const halfH = c.h / 2;
+
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetY = 8;
+
+            const woodGrad = ctx.createLinearGradient(-halfW, -halfH, halfW, halfH);
+            woodGrad.addColorStop(0, '#A66A38');
+            woodGrad.addColorStop(0.5, '#8C5227');
+            woodGrad.addColorStop(1, '#613615');
+            ctx.fillStyle = woodGrad;
+            ctx.fillRect(-halfW, -halfH, c.w, c.h);
+
+            ctx.shadowColor = 'transparent';
+
+            ctx.strokeStyle = '#3D200A';
+            ctx.lineWidth = 2;
+            const plankSize = c.h / 3;
+            ctx.beginPath();
+            ctx.moveTo(-halfW, -halfH + plankSize);
+            ctx.lineTo(halfW, -halfH + plankSize);
+            ctx.moveTo(-halfW, -halfH + plankSize * 2);
+            ctx.lineTo(halfW, -halfH + plankSize * 2);
+            ctx.stroke();
+
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#4A280D';
+            ctx.beginPath();
+            ctx.moveTo(-halfW + 6, -halfH + 6);
+            ctx.lineTo(halfW - 6, halfH - 6);
+            ctx.moveTo(halfW - 6, -halfH + 6);
+            ctx.lineTo(-halfW + 6, halfH - 6);
+            ctx.stroke();
+
+            const bracketSize = 12;
+            ctx.fillStyle = '#2B303A';
+            ctx.strokeStyle = '#454D5A';
+            ctx.lineWidth = 1.5;
+
+            const corners = [
+                [-halfW, -halfH], [halfW - bracketSize, -halfH],
+                [-halfW, halfH - bracketSize], [halfW - bracketSize, halfH - bracketSize]
+            ];
+
+            corners.forEach(([cx, cy]) => {
+                ctx.fillRect(cx, cy, bracketSize, bracketSize);
+                ctx.strokeRect(cx, cy, bracketSize, bracketSize);
+            });
+
+            ctx.fillStyle = '#FFD700';
+            const rivets = [
+                [-halfW + 4, -halfH + 4], [halfW - 4, -halfH + 4],
+                [-halfW + 4, halfH - 4], [halfW - 4, halfH - 4]
+            ];
+            rivets.forEach(([rx, ry]) => {
+                ctx.beginPath();
+                ctx.arc(rx, ry, 1.8, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.restore();
+        }
+
+        function explodeCrate() {
+            if (!crate) return;
+
+            points += 1;
+            saveData();
+
+            const renderPos = getCratePos(crate);
+            const centerX = renderPos.x + crate.w / 2;
+            const centerY = renderPos.y + crate.h / 2;
+
+            for (let i = 0; i < 28; i++) {
+                const isSpark = Math.random() < 0.4;
+                particles.push({
+                    x: centerX,
+                    y: centerY,
+                    vx: (Math.random() - 0.5) * 16,
+                    vy: (Math.random() - 0.5) * 16,
+                    size: isSpark ? Math.random() * 4 + 2 : Math.random() * 8 + 4,
+                    alpha: 1,
+                    isSpark: isSpark,
+                    color: isSpark 
+                        ? ['#FFD700', '#FF5500', '#FF3300'][Math.floor(Math.random() * 3)]
+                        : ['#A66A38', '#8C5227', '#4A280D'][Math.floor(Math.random() * 3)]
+                });
+            }
+
+            spawnCrate();
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.035;
+
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                } else {
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+
+                    if (p.isSpark) {
+                        ctx.shadowColor = p.color;
+                        ctx.shadowBlur = 8;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(p.x, p.y, p.size, p.size);
+                    }
+
+                    ctx.restore();
+                }
+            }
+        }
+
+        // --- RENDERERS FOR WEAPONS ---
+        function drawEquippedWeapon(x, y, angle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+
+            if (equippedWeapon === 'kunai') {
+                ctx.shadowColor = 'rgba(0,0,0,0.4)';
+                ctx.shadowBlur = 10;
+
+                ctx.fillStyle = '#E2E8F0';
+                ctx.beginPath();
+                ctx.moveTo(0, -42);
+                ctx.lineTo(13, -8);
+                ctx.lineTo(0, 8);
+                ctx.fill();
+
+                ctx.fillStyle = '#94A3B8';
+                ctx.beginPath();
+                ctx.moveTo(0, -42);
+                ctx.lineTo(-13, -8);
+                ctx.lineTo(0, 8);
+                ctx.fill();
+
+                ctx.fillStyle = '#654321';
+                ctx.fillRect(-3.5, 8, 7, 18);
+
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(0, 31, 7, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#0F172A';
+                ctx.beginPath();
+                ctx.arc(0, 31, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+            } 
+            else if (equippedWeapon === 'axe') {
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 8;
+
+                ctx.fillStyle = '#8B4513';
+                ctx.beginPath();
+                ctx.moveTo(-2, 28);
+                ctx.quadraticCurveTo(2, 0, -2, -25);
+                ctx.lineTo(3, -25);
+                ctx.quadraticCurveTo(6, 0, 3, 28);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(-4, -22, 10, 8);
+
+                const bladeGrad = ctx.createLinearGradient(0, -30, 24, 0);
+                bladeGrad.addColorStop(0, '#94A3B8');
+                bladeGrad.addColorStop(0.7, '#E2E8F0');
+                bladeGrad.addColorStop(1, '#FFFFFF');
+                ctx.fillStyle = bladeGrad;
+
+                ctx.beginPath();
+                ctx.moveTo(2, -24);
+                ctx.quadraticCurveTo(18, -28, 22, -18);
+                ctx.quadraticCurveTo(26, -10, 20, 2);
+                ctx.lineTo(2, -14);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#64748B';
+                ctx.beginPath();
+                ctx.moveTo(-4, -22);
+                ctx.lineTo(-10, -20);
+                ctx.lineTo(-10, -16);
+                ctx.lineTo(-4, -14);
+                ctx.closePath();
+                ctx.fill();
+            } 
+            else if (equippedWeapon === 'fuma') {
+                const size = 35;
+                ctx.fillStyle = '#334155';
+                ctx.strokeStyle = '#FF2A55';
+                ctx.lineWidth = 2;
+
+                ctx.beginPath();
+                for (let i = 0; i < 4; i++) {
+                    const rot = (i * Math.PI) / 2;
+                    ctx.rotate(rot);
+                    ctx.moveTo(0, 0);
+                    ctx.quadraticCurveTo(size * 0.5, -size * 0.35, size, 0);
+                    ctx.quadraticCurveTo(size * 0.4, size * 0.4, 0, 0);
+                }
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(0, 0, 8, 0, Math.PI * 2);
+                ctx.fill();
+            } 
+            else if (equippedWeapon === 'sai') {
+                ctx.shadowColor = 'rgba(0,0,0,0.4)';
+                ctx.shadowBlur = 8;
+
+                const saiGrad = ctx.createLinearGradient(0, -42, 0, 10);
+                saiGrad.addColorStop(0, '#FFFFFF');
+                saiGrad.addColorStop(1, '#64748B');
+                ctx.fillStyle = saiGrad;
+
+                ctx.beginPath();
+                ctx.moveTo(0, -45);
+                ctx.lineTo(3.5, 8);
+                ctx.lineTo(-3.5, 8);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.strokeStyle = '#E2E8F0';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(-12, -10);
+                ctx.quadraticCurveTo(-10, 6, -3, 6);
+                ctx.moveTo(12, -10);
+                ctx.quadraticCurveTo(10, 6, 3, 6);
+                ctx.stroke();
+
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(-4, 6, 8, 20);
+                ctx.fillStyle = '#0F172A';
+                ctx.fillRect(-3, 8, 6, 16);
+            }
+            else if (equippedWeapon === 'chakram') {
+                ctx.shadowColor = '#00F0FF';
+                ctx.shadowBlur = 10;
+
+                ctx.fillStyle = '#E2E8F0';
+                ctx.beginPath();
+                ctx.arc(0, 0, 30, 0, Math.PI * 2);
+                ctx.arc(0, 0, 18, 0, Math.PI * 2, true);
+                ctx.fill();
+
+                ctx.fillStyle = '#FFD700';
+                for (let i = 0; i < 6; i++) {
+                    ctx.rotate(Math.PI / 3);
+                    ctx.beginPath();
+                    ctx.moveTo(0, -30);
+                    ctx.lineTo(6, -24);
+                    ctx.lineTo(-6, -24);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+            else if (equippedWeapon === 'boshuriken') {
+                ctx.shadowColor = 'rgba(255,255,255,0.6)';
+                ctx.shadowBlur = 8;
+
+                const spikeGrad = ctx.createLinearGradient(-4, 0, 4, 0);
+                spikeGrad.addColorStop(0, '#FFFFFF');
+                spikeGrad.addColorStop(0.5, '#94A3B8');
+                spikeGrad.addColorStop(1, '#334155');
+                ctx.fillStyle = spikeGrad;
+
+                ctx.beginPath();
+                ctx.moveTo(0, -48);
+                ctx.lineTo(5, -20);
+                ctx.lineTo(4, 30);
+                ctx.lineTo(-4, 30);
+                ctx.lineTo(-5, -20);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#FF3344';
+                ctx.beginPath();
+                ctx.moveTo(0, 30);
+                ctx.lineTo(6, 45);
+                ctx.lineTo(-6, 45);
+                ctx.closePath();
+                ctx.fill();
+            }
+            else if (equippedWeapon === 'shoko') {
+                ctx.fillStyle = '#CBD5E1';
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 1.5;
+
+                for (let i = 0; i < 3; i++) {
+                    ctx.rotate((Math.PI * 2) / 3);
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.quadraticCurveTo(10, -20, 0, -35);
+                    ctx.quadraticCurveTo(-10, -20, 0, 0);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = '#0F172A';
+                ctx.beginPath();
+                ctx.arc(0, 0, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            else if (equippedWeapon === 'kyoketsu') {
+                const hookGrad = ctx.createLinearGradient(0, -40, 0, 10);
+                hookGrad.addColorStop(0, '#FFFFFF');
+                hookGrad.addColorStop(1, '#475569');
+                ctx.fillStyle = hookGrad;
+
+                ctx.beginPath();
+                ctx.moveTo(0, -42);
+                ctx.lineTo(4, 0);
+                ctx.lineTo(-4, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(2, -15);
+                ctx.quadraticCurveTo(18, -10, 16, -28);
+                ctx.quadraticCurveTo(10, -8, 2, -5);
+                ctx.fill();
+
+                ctx.fillStyle = '#1E293B';
+                ctx.fillRect(-3, 0, 6, 18);
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(0, 22, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            else if (equippedWeapon === 'cards') {
+                ctx.shadowColor = '#FF3344';
+                ctx.shadowBlur = 8;
+
+                const cardGrad = ctx.createLinearGradient(-15, -25, 15, 25);
+                cardGrad.addColorStop(0, '#FFFFFF');
+                cardGrad.addColorStop(0.5, '#E2E8F0');
+                cardGrad.addColorStop(1, '#64748B');
+                ctx.fillStyle = cardGrad;
+
+                ctx.fillRect(-16, -28, 32, 56);
+                ctx.strokeStyle = '#FF3344';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(-16, -28, 32, 56);
+
+                ctx.fillStyle = '#FF3344';
+                ctx.beginPath();
+                ctx.moveTo(0, -10);
+                ctx.lineTo(8, 0);
+                ctx.lineTo(0, 10);
+                ctx.lineTo(-8, 0);
+                ctx.closePath();
+                ctx.fill();
+            }
+            else {
+                const size = 30;
+                ctx.shadowColor = '#00F0FF';
+                ctx.shadowBlur = (state === 'flying') ? 12 : 0;
+
+                const starGrad = ctx.createLinearGradient(-size, -size, size, size);
+                starGrad.addColorStop(0, '#FFFFFF');
+                starGrad.addColorStop(0.5, '#64748B');
+                starGrad.addColorStop(1, '#1E293B');
+                ctx.fillStyle = starGrad;
+
+                const pointsArr = [
+                    [0, -size], [size * 0.25, -size * 0.25], 
+                    [size, 0], [size * 0.25, size * 0.25], 
+                    [0, size], [-size * 0.25, size * 0.25], 
+                    [-size, 0], [-size * 0.25, -size * 0.25]
+                ];
+
+                ctx.beginPath();
+                ctx.moveTo(pointsArr[0][0], pointsArr[0][1]);
+                for (let i = 1; i < pointsArr.length; i++) ctx.lineTo(pointsArr[i][0], pointsArr[i][1]);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#00F0FF';
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 0.16, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function drawUI() {
+            ctx.save();
+            ctx.fillStyle = '#FFD700';
+            ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+            ctx.shadowBlur = 10;
+            ctx.font = '900 26px sans-serif';
+            ctx.fillText(`POINTS: ${points}`, 25, 48);
+            ctx.restore();
+        }
+
+        function checkCollision(c, point, radius = 22) {
+            if (!c) return false;
+            const renderPos = getCratePos(c);
+            const closestX = Math.max(renderPos.x, Math.min(point.x, renderPos.x + c.w));
+            const closestY = Math.max(renderPos.y, Math.min(point.y, renderPos.y + c.h));
+            const dx = point.x - closestX;
+            const dy = point.y - closestY;
+            return (dx * dx + dy * dy) < (radius * radius);
+        }
+
+        resizeCanvas();
+
+        function animate() {
+            drawAtmosphericBackground();
+            drawUI();
+            updateCrate();
+            drawCrate(crate);
+            updateParticles();
+
+            if (gameState === 'playing') {
+                if (state === 'idle') {
+                    pos = { ...rest };
+                    drawEquippedWeapon(pos.x, pos.y, 0);
+                } 
+                else if (state === 'dragging') {
+                    const holdTime = (Date.now() - dragStartTime) / 1000;
+
+                    if (holdTime > 0.8) {
+                        const shakeIntensity = (holdTime - 0.8) * 12;
+                        shakeOffset.x = (Math.random() - 0.5) * shakeIntensity;
+                        shakeOffset.y = (Math.random() - 0.5) * shakeIntensity;
+                    } else {
+                        shakeOffset = { x: 0, y: 0 };
+                    }
+
+                    if (holdTime >= 2.0) {
+                        releaseShuriken(true);
+                    }
+
+                    const actualDragX = dragPos.x + shakeOffset.x;
+                    const actualDragY = dragPos.y + shakeOffset.y;
+
+                    const dx = rest.x - actualDragX;
+                    const dy = rest.y - actualDragY;
+
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.5)';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 6]);
+                    ctx.shadowColor = '#00F0FF';
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.moveTo(rest.x, rest.y);
+                    ctx.lineTo(rest.x + dx * 2.5, rest.y + dy * 2.5);
+                    ctx.stroke();
+
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 2.5;
+                    ctx.setLineDash([]);
+                    ctx.shadowBlur = 0;
+                    ctx.beginPath();
+                    ctx.moveTo(rest.x, rest.y);
+                    ctx.lineTo(actualDragX, actualDragY);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    drawEquippedWeapon(actualDragX, actualDragY, Math.atan2(dy, dx) + Math.PI / 2);
+                } 
+                else if (state === 'flying') {
+                    pos.x += vel.x;
+                    pos.y += vel.y;
+                    rotation += 0.42;
+
+                    if (checkCollision(crate, pos)) {
+                        explodeCrate();
+                        state = 'idle';
+                        pos = { ...rest };
+                    } else {
+                        drawEquippedWeapon(pos.x, pos.y, rotation);
+                    }
+
+                    const margin = 100;
+                    if (pos.x < -margin || pos.x > canvas.width + margin ||
+                        pos.y < -margin || pos.y > canvas.height + margin) {
+                        state = 'idle';
+                        pos = { ...rest };
+                    }
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+
+</body>
+</html>
